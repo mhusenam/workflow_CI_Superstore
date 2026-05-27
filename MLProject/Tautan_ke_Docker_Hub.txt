@@ -1,0 +1,2 @@
+Tautan Docker Hub: https://hub.docker.com/u/mhusenam
+(Catatan: Workflow saat ini dikonfigurasi menggunakan conda.yaml sesuai instruksi dasar MLProject)
