@@ -1,6 +1,7 @@
-name: Superstore_Retraining_Project
+name: Superstore_Retraining_Workflow
 
-conda_env: conda.yaml
+docker_env:
+  image: mhusenam/superstore-model:latest
 
 entry_points:
   main:
