@@ -6,66 +6,35 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 import mlflow
 import dagshub
 
-# Mengatur tracking URI MLflow secara dinamis
+# 1. Setup MLflow & DagsHub
 mlflow.set_tracking_uri("https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow")
-
-# Jika berjalan di GitHub Actions, gunakan token dari env variable untuk autentikasi
 if "MLFLOW_TRACKING_PASSWORD" in os.environ:
     os.environ["DAGSHUB_CLIENT_TOKEN"] = os.environ["MLFLOW_TRACKING_PASSWORD"]
-else:
-    # Jika berjalan di lokal laptopmu, dia baru akan memanggil dagshub.init bawaan
-    import dagshub
-    dagshub.init(repo_owner='mhusenam', repo_name='Ekperimen_MuhammadHuseinAbdullahMahfud', mlflow=True)
 
 # 2. Load Data Preprocessing
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(BASE_DIR, "superstore_preprocessing.csv")
-
-print(f"📂 Mencari data di jalur otomatis: {data_path}")
 df = pd.read_csv(data_path)
 
-# Pisahkan Fitur dan Target
 X = df.drop(columns=['target'])
 y = df['target']
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 3. MLflow Experiment
-mlflow.set_experiment("Superstore_Base_Modelling")
+# 3. Buat Eksperimen Baru (Biar Bersih dari Cache Eror Lama)
+mlflow.set_experiment("Superstore_CI_CD_Final")
 
-with mlflow.start_run(run_name="RandomForest_Base"):
-    # Set Hyperparameters Dasar
-    n_estimators = 100
-    max_depth = 5
-    
-    mlflow.log_param("n_estimators", n_estimators)
-    mlflow.log_param("max_depth", max_depth)
-    
-    # Training Model
-    model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
+with mlflow.start_run(run_name="RandomForest_Final") as run:
+    model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
     model.fit(X_train, y_train)
     
-    # Prediksi & Evaluasi
     y_pred = model.predict(X_test)
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred, zero_division=0)
-    rec = recall_score(y_test, y_pred, zero_division=0)
+    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
     
-    # Log Metrics ke MLflow/DagsHub
-    mlflow.log_metric("accuracy", acc)
-    mlflow.log_metric("precision", prec)
-    mlflow.log_metric("recall", rec)
+    # KUNCI 1: Log model dengan nama wajib "model"
+    mlflow.sklearn.log_model(model, "model")
     
-    # Log Model sebagai Artifak
-    mlflow.sklearn.log_model(model, "base_random_forest_model")
-    
-    import shutil
-    # Hapus yang lama jika ada
-    
-    import os
-    save_path = os.path.join(os.path.dirname(BASE_DIR), "rf_output")
-    if os.path.exists(save_path):
-        shutil.rmtree(save_path)
-    mlflow.sklearn.save_model(model, save_path)
-    
-    print(f"🎉 Model berhasil disimpan ke folder 'saved_model'!")
+    # KUNCI 2: Tulis RUN_ID ke file teks agar gampang dibaca GitHub
+    with open("run_id.txt", "w") as f:
+        f.write(run.info.run_id)
+        
+    print(f"🎉 Sukses! RUN_ID: {run.info.run_id} berhasil dicetak ke run_id.txt")
