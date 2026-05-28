@@ -82,7 +82,8 @@ jobs:
         run: |
           mlflow models build-docker \
             -m "runs:/${{ env.RUN_ID }}/base_random_forest_model" \
-            -n mhusenam/superstore-model:latest
+            -n mhusenam/superstore-model:latest \
+            --enable-mlserver
 
       # ── 10. LOG IN TO DOCKER HUB ─────────────────────────────
       - name: Log in to Docker Hub
