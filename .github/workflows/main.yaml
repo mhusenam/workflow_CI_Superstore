@@ -33,23 +33,21 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install mlflow pandas scikit-learn dagshub 
-      # ── 5. RUN MLFLOW PROJECT  ───────────────────
+      # ── 5. RUN MLFLOW PROJECT ───────────────────
       - name: Run mlflow project
-        env:
-          MLFLOW_TRACKING_URI: "file:./mlruns"
         run: |
           rm -rf mlruns mlflow.db
+          export MLFLOW_TRACKING_URI="file://$GITHUB_WORKSPACE/mlruns"
           mlflow run ./MLProject --env-manager=local
 
       # ── 6. GET LATEST LOCAL MLFLOW RUN_ID ────────────────────
       - name: Get latest local MLflow run_id
-        env:
-          MLFLOW_TRACKING_URI: "file:./mlruns"
         run: |
-          RUN_ID=$(python -c "import mlflow; exps = mlflow.search_experiments(); df = mlflow.search_runs(experiment_ids=[e.experiment_id for e in exps]); print(df.iloc[0]['run_id'])")
+          export MLFLOW_TRACKING_URI="file://$GITHUB_WORKSPACE/mlruns"
+          RUN_ID=$(python -c "import mlflow; exps = mlflow.search_experiments(); df = mlflow.search_runs(experiment_ids=[e.experiment_id for e in exps]); print(df.iloc[0]['run_id'] if not df.empty else 'NOT_FOUND')")
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
           echo "✅ Local Run ID: $RUN_ID"
-
+      
       # ── 7. UPLOAD ARTIFACT TO GITHUB ─────────────────────────
       - name: Upload Artifact to GitHub
         uses: actions/upload-artifact@v4
