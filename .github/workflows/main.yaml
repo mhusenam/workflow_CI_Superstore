@@ -42,7 +42,7 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
           cd MLProject
-          mlflow run . --entry-point=train --env-manager=local
+          python modelling.py
 
       # ── 6. GET LATEST MLFLOW RUN_ID ──────────────────────────
       - name: Get latest MLflow run_id
