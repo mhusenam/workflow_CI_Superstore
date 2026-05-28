@@ -36,6 +36,8 @@ jobs:
       # ── 5. RUN MLFLOW PROJECT  ───────────────────
       - name: Run mlflow project
         run: |
+          # Hapus sisa-sisa database mlflow lama jika ada
+          rm -rf mlruns mlflow.db
           mlflow run ./MLProject --env-manager=local
 
       # ── 6. GET LATEST LOCAL MLFLOW RUN_ID ────────────────────
