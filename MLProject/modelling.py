@@ -4,9 +4,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 import mlflow
 
-# 1. Setup MLflow LOKAL (Bukan DagsHub!)
+
 # Ini akan membuat folder 'mlruns' otomatis di laptopmu
-mlflow.set_tracking_uri("file:./mlruns")
 mlflow.set_experiment("Superstore_Basic_Autolog")
 
 # 2. Load Data
