@@ -80,7 +80,7 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
           mlflow models build-docker \
-            -m "./MLProject/rf_output" \
+            -m "$GITHUB_WORKSPACE/MLProject/rf_output" \
             -n mhusenam/superstore-model:latest \
             --enable-mlserver
 
