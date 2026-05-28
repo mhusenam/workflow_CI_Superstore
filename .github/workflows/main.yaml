@@ -33,38 +33,38 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install mlflow pandas scikit-learn dagshub 
-      # ── 5 & 6. RUN TRAINING & TANGKAP RUN_ID ─────────────────
-      - name: Run training and get RUN_ID
-        env:
-          MLFLOW_TRACKING_URI: "https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow"
-          MLFLOW_TRACKING_USERNAME: "mhusenam"
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+      # ── 5. RUN MLFLOW PROJECT  ───────────────────
+      - name: Run mlflow project
         run: |
-          python modelling.py
-          
+          mlflow run ./MLProject --env-manager=local
+
+      # ── 6. GET LATEST LOCAL MLFLOW RUN_ID ────────────────────
+      - name: Get latest local MLflow run_id
+        run: |
+          RUN_ID=$(python -c "import mlflow; mlflow.set_tracking_uri('file:./mlruns'); runs = mlflow.search_runs(experiment_names=['Superstore_Basic_Autolog']); print(runs.iloc[0]['run_id'])")
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "✅ Local Run ID: $RUN_ID"
+
       # ── 7. UPLOAD ARTIFACT TO GITHUB ─────────────────────────
       - name: Upload Artifact to GitHub
         uses: actions/upload-artifact@v4
         with:
-          name: saved_model
-          path: local_model/
+            name: superstore-model-artifact
+            path: mlruns/
+            retention-days: 5
+
       # ── 8. LOG IN TO DOCKER HUB ──────────────────────────────
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # ── 9. BUILD DOCKER MODEL ────────────────────────────────
+      # ── 9. BUILD DOCKER MODEL LOKAL ──────────────────────────
       - name: Build Docker Model
-        env:
-          MLFLOW_TRACKING_URI: "https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow"
-          MLFLOW_TRACKING_USERNAME: "mhusenam"
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
-          DAGSHUB_CLIENT_TOKEN: ${{ secrets.MLFLOW_TRACKING_PASSWORD }} # Memastikan Docker punya akses download ke DagsHub
         run: |
           mlflow models build-docker \
-            -m "local_model" \
+            -m "runs:/${{ env.RUN_ID }}/model" \
             -n ${{ secrets.DOCKERHUB_USERNAME }}/superstore-model:latest \
             --enable-mlserver
       
