@@ -39,7 +39,7 @@ jobs:
         env:
           MLFLOW_TRACKING_URI: "https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow"
           MLFLOW_TRACKING_USERNAME: "mhusenam"
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
           cd MLProject
           mlflow run .  --env-manager=local
@@ -49,7 +49,7 @@ jobs:
         env:
           MLFLOW_TRACKING_URI: "https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow"
           MLFLOW_TRACKING_USERNAME: "mhusenam"
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
           RUN_ID=$(python - <<'EOF'
           import mlflow
@@ -78,7 +78,7 @@ jobs:
         env:
           MLFLOW_TRACKING_URI: "https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow"
           MLFLOW_TRACKING_USERNAME: "mhusenam"
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
           mlflow models build-docker \
             -m "runs:/${{ env.RUN_ID }}/base_random_forest_model" \
