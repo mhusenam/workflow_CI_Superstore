@@ -6,9 +6,16 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 import mlflow
 import dagshub
 
-# 1. Inisialisasi DagsHub untuk MLflow Tracking
-# (Ubah 'USERNAME_KAMU' dan 'REPOSTORI_KAMU' sesuai akun DagsHub nanti)
-dagshub.init(repo_owner='mhusenam', repo_name='Ekperimen_MuhammadHuseinAbdullahMahfud', mlflow=True)
+# Mengatur tracking URI MLflow secara dinamis
+mlflow.set_tracking_uri("https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow")
+
+# Jika berjalan di GitHub Actions, gunakan token dari env variable untuk autentikasi
+if "MLFLOW_TRACKING_PASSWORD" in os.environ:
+    os.environ["DAGSHUB_CLIENT_TOKEN"] = os.environ["MLFLOW_TRACKING_PASSWORD"]
+else:
+    # Jika berjalan di lokal laptopmu, dia baru akan memanggil dagshub.init bawaan
+    import dagshub
+    dagshub.init(repo_owner='mhusenam', repo_name='Ekperimen_MuhammadHuseinAbdullahMahfud', mlflow=True)
 
 # 2. Load Data Preprocessing
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
