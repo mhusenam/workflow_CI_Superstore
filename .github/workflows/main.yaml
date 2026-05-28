@@ -69,7 +69,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
             name: superstore-model-artifact
-            path: MLProject/saved_model/
+            path: MLProject/rf-output/
             retention-days: 30
 
       # ── 9. BUILD DOCKER MODEL ────────────────────────────────
@@ -80,7 +80,7 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
           mlflow models build-docker \
-            -m "./MLProject/saved_mode" \
+            -m "./MLProject/rf_output" \
             -n mhusenam/superstore-model:latest \
             --enable-mlserver
 

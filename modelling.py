@@ -63,6 +63,6 @@ with mlflow.start_run(run_name="RandomForest_Base"):
     if os.path.exists("saved_model"):
         shutil.rmtree("saved_model") # Hapus yang lama jika ada
     
-    mlflow.sklearn.save_model(model, "saved_model")
+    mlflow.sklearn.save_model(model, "rf_output")
     
     print(f"🎉 Model berhasil disimpan ke folder 'saved_model'!")
