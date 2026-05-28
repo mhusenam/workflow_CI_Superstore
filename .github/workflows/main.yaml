@@ -41,7 +41,6 @@ jobs:
           MLFLOW_TRACKING_USERNAME: "mhusenam"
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
-          cd MLProject
           python modelling.py
 
       # ── 6. GET LATEST MLFLOW RUN_ID ──────────────────────────
