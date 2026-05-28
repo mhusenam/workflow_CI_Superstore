@@ -36,14 +36,13 @@ jobs:
       # ── 5. RUN MLFLOW PROJECT  ───────────────────
       - name: Run mlflow project
         run: |
-          # Hapus sisa-sisa database mlflow lama jika ada
           rm -rf mlruns mlflow.db
           mlflow run ./MLProject --env-manager=local
 
       # ── 6. GET LATEST LOCAL MLFLOW RUN_ID ────────────────────
       - name: Get latest local MLflow run_id
         run: |
-          RUN_ID=$(python -c "import mlflow; mlflow.set_tracking_uri('file:./mlruns'); runs = mlflow.search_runs(experiment_names=['Superstore_Basic_Autolog']); print(runs.iloc[0]['run_id'])")
+          RUN_ID=$(python -c "import mlflow; mlflow.set_tracking_uri('file:./mlruns'); runs = mlflow.search_runs(experiment_ids=['0']); print(runs.iloc[0]['run_id'])")
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
           echo "✅ Local Run ID: $RUN_ID"
 
