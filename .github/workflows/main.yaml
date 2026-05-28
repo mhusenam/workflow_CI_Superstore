@@ -1,0 +1,104 @@
+name: Machine Learning CI Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  retrain-model:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. CHECKOUT ──────────────────────────────────────────
+      - name: Run actions/checkout@v3
+        uses: actions/checkout@v3
+
+      # ── 2. PYTHON SETUP ──────────────────────────────────────
+      - name: Set up Python 3.12.7
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12.7'
+
+      # ── 3. CHECK ENV ─────────────────────────────────────────
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
+          echo "Working dir: $(pwd)"
+          ls -la
+
+      # ── 4. INSTALL DEPENDENCIES ──────────────────────────────
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install mlflow pandas scikit-learn dagshub 
+
+      # ── 5. RUN MLFLOW PROJECT ────────────────────────────────
+      - name: Run mlflow project
+        env:
+          MLFLOW_TRACKING_URI: "https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow"
+          MLFLOW_TRACKING_USERNAME: "mhusenam"
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          cd MLProject
+          mlflow run . --no-conda --env-manager=local
+
+      # ── 6. GET LATEST MLFLOW RUN_ID ──────────────────────────
+      - name: Get latest MLflow run_id
+        env:
+          MLFLOW_TRACKING_URI: "https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow"
+          MLFLOW_TRACKING_USERNAME: "mhusenam"
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          RUN_ID=$(python - <<'EOF'
+          import mlflow
+          client = mlflow.MlflowClient()
+          exp = client.get_experiment_by_name("Superstore_Base_Modelling")
+          runs = client.search_runs(
+              experiment_ids=[exp.experiment_id],
+              order_by=["start_time DESC"],
+              max_results=1
+          )
+          print(runs[0].info.run_id)
+          EOF
+          )
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "✅ Latest Run ID: $RUN_ID"
+
+      - name: Upload Artifact to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+            name: superstore-model-artifact
+            path: MLProject/saved_model/
+            retention-days: 30
+
+      # ── 9. BUILD DOCKER MODEL ────────────────────────────────
+      - name: Build Docker Model
+        env:
+          MLFLOW_TRACKING_URI: "https://dagshub.com/mhusenam/Ekperimen_MuhammadHuseinAbdullahMahfud.mlflow"
+          MLFLOW_TRACKING_USERNAME: "mhusenam"
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          mlflow models build-docker \
+            -m "runs:/${{ env.RUN_ID }}/base_random_forest_model" \
+            -n mhusenam/superstore-model:latest
+
+      # ── 10. LOG IN TO DOCKER HUB ─────────────────────────────
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ── 11. TAG DOCKER IMAGE ─────────────────────────────────
+      - name: Tag Docker Image
+        run: |
+          docker tag mhusenam/superstore-model:latest \
+            mhusenam/superstore-model:${{ github.sha }}
+
+      # ── 12. PUSH DOCKER IMAGE ────────────────────────────────
+      - name: Push Docker Image
+        run: |
+          docker push mhusenam/superstore-model:latest
+          docker push mhusenam/superstore-model:${{ github.sha }}
