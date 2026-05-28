@@ -83,7 +83,7 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
           mlflow models build-docker \
-            -m "runs:/${{ env.RUN_ID }}/rf_output" \
+            -m "runs:/${{ env.RUN_ID }}/base_random_forest_model" \
             -n ${{ secrets.DOCKERHUB_USERNAME }}/superstore-model:latest \
             --enable-mlserver
 
